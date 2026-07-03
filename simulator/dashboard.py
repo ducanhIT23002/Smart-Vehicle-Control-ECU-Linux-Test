@@ -1,76 +1,83 @@
-import subprocess
-import threading
+import socket
 import sys
+import time
 
-# ============================================================================
-# HÀM 1: LUỒNG CHUYÊN ĐỌC LOG (Chạy ngầm)
-# ============================================================================
-def read_logs(process):
-    # Lặp vòng (ループします - るーぷします)
-    for line in process.stdout:
-        clean_line = line.strip()
+# Địa chỉ IP của Máy chủ (Localhost) và Cổng kết nối
+HOST = '127.0.0.1' 
+PORT = 8080
+
+def start_client():
+    print("======================================================")
+    print("🌐 BCM TESTER TOOL V4.0 (TCP/IP CONNECTED ECU)")
+    print(f"   Đang tìm kiếm ECU tại {HOST}:{PORT}...")
+    print("======================================================\n")
+
+    try:
+        # 1. Tạo Socket mạng
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
-        # Xóa dòng hiện tại và in log mới (tránh đè chữ lên chỗ nhập lệnh)
-        sys.stdout.write('\r' + ' ' * 50 + '\r') 
+        # 2. Yêu cầu kết nối (接続します - せつぞくします)
+        client_socket.connect((HOST, PORT))
+        print("✅ ĐÃ KẾT NỐI THÀNH CÔNG VỚI BCM SERVER!\n")
+    except ConnectionRefusedError:
+        print("🔥 [LỖI] Không thể kết nối! Hãy chắc chắn BCM C++ đang chạy ở một Terminal khác.")
+        sys.exit(1)
 
-        if "DOOR" in clean_line:
-            print(f"🚪 {clean_line}")
-        elif "WIPER" in clean_line:
-            print(f"🌧️ {clean_line}")
-        elif "LIGHT" in clean_line:
-            print(f"💡 {clean_line}")
-        elif "Dispatcher" in clean_line:
-            print(f"📡 {clean_line}")
-        else:
-            print(f"   {clean_line}")
-        
-        # In lại con trỏ nhập lệnh
-        sys.stdout.write(">> Nhập lệnh CAN: ")
-        sys.stdout.flush()
-
-# ============================================================================
-# HÀM 2: LUỒNG CHÍNH (Giao diện nhập liệu)
-# ============================================================================
-def start_dashboard():
-    print("=========================================")
-    print("🚗 BCM VIRTUAL DASHBOARD V2.0")
-    print("   [HDSD] Gõ lệnh theo format: CAN <ID> <DLC> <DATA>")
-    print("   [VD] Mở cửa: CAN 100 1 1")
-    print("=========================================\n")
-
-    # Mở ống dẫn cả 2 chiều: stdin (Gửi lệnh) và stdout (Nhận log)
-    process = subprocess.Popen(
-        ['../bcm_sil_app'], 
-        stdin=subprocess.PIPE,  
-        stdout=subprocess.PIPE, 
-        text=True               
-    )
-
-    # Đa luồng (マルチスレッド - まるちすれっど)
-    # 例文: マルチスレッドでログを読(よ)み込(こ)みます。
-    # (Đọc log bằng đa luồng.)
-    # Khởi tạo một luồng phụ tách biệt để chạy hàm read_logs ở trên
-    reader_thread = threading.Thread(target=read_logs, args=(process,), daemon=True)
-    reader_thread.start()
-
-    # Luồng chính đứng đây chờ ông gõ phím
     try:
         while True:
-            # Chờ người dùng nhập (入力 - にゅうりょく)
-            cmd = input(">> Nhập lệnh CAN: ")
+            cmd = input(">> Lệnh CAN (CAN/SPAM/NOISE/EXIT): ")
+            cmd_upper = cmd.upper()
             
-            if cmd.lower() in ['exit', 'quit']:
+            if cmd_upper in ['EXIT', 'QUIT']:
                 break
                 
-            # Bơm lệnh vào ống dẫn cho C đọc
-            process.stdin.write(cmd + "\n")
-            process.stdin.flush()
+            elif cmd_upper.startswith('SPAM'):
+                try:
+                    count = int(cmd.split()[1])
+                    print(f"⚠️ ĐANG BƠM {count} LỆNH QUA MẠNG LAN...")
+                    # Gửi dữ liệu (送信します - そうしんします)
+                    for _ in range(count):
+                        # Mạng TCP yêu cầu phải chuyển chuỗi (String) thành Byte (b"...")
+                        client_socket.sendall(b"CAN 100 1 1\n")
+                        client_socket.sendall(b"CAN 200 1 3\n")
+                    print("✅ ĐÃ GỬI XONG QUA MẠNG!\n")
+                except:
+                    print("❌ Cú pháp sai. VD: SPAM 100")
+                    
+            elif cmd_upper == 'NOISE':
+                print("⚠️ ĐANG TIÊM DỮ LIỆU RÁC (NOISE) QUA MẠNG...")
+                client_socket.sendall(b"CAN 999 9 99\n")
+                client_socket.sendall(b"GARBAGE DATA NETWORK ERROR\n")
+            # ==========================================================
+            # THÊM MỚI: MÁY QUÉT LỖI UDS
+            # ==========================================================
+            elif cmd_upper == 'UDS READ':
+                print("🛠️ [UDS] Đang yêu cầu BCM trích xuất lịch sử lỗi (Read DTC 0x19)...")
+                # Gửi CAN ID 0x7E0. Byte đầu tiên là 25 (Chính là 0x19 trong hệ Thập phân)
+                client_socket.sendall(b"CAN 7E0 8 25\n")
+            
+            # ==========================================================
+            # THÊM MỚI: LỆNH XÓA LỖI (CLEAR DTC 0x14)
+            # ==========================================================
+            elif cmd_upper == 'UDS CLEAR':
+                print("🧹 [UDS] Đang yêu cầu BCM xóa sạch lịch sử lỗi (Clear DTC 0x14)...")
+                # Gửi CAN ID 0x7E0. Số 20 (Thập phân) chính là 0x14 trong hệ Hex.
+                client_socket.sendall(b"CAN 7E0 8 20\n")
+            
+            elif cmd_upper == 'CRASH LIGHT':
+                print("💀 [SAFETY TEST] Đang bắn mã độc làm treo Task Đèn Pha...")
+                # Điền số thập phân của SYS_EVT_CRASH vào chỗ [SỐ_CỦA_ÔNG]
+                client_socket.sendall(b"CAN 300 1 255\n")
+
+            else:
+                # Gửi lệnh bình thường đã được mã hóa thành Byte
+                client_socket.sendall((cmd + "\n").encode('utf-8'))
 
     except KeyboardInterrupt:
         pass
     finally:
-        print("\n🛑 SHUTTING DOWN DASHBOARD...")
-        process.terminate()
+        print("\n🛑 NGẮT KẾT NỐI (切断します - せつだんします)...")
+        client_socket.close()
 
 if __name__ == "__main__":
-    start_dashboard()
+    start_client()

@@ -1,7 +1,22 @@
-#ifndef LIGHTCONTROL_SWC_H
-#define LIGHTCONTROL_SWC_H
+#ifndef LIGHT_CONTROL_HPP
+#define LIGHT_CONTROL_HPP
 
-void LightControl_Init(void);
-void LightControl_Runnable(void);
+#include <stdint.h>
 
-#endif /* LIGHTCONTROL_SWC_H */
+class LightControl {
+private:
+    uint8_t is_interior_light_on;
+
+public:
+    LightControl();
+    void Init();
+    void RunTask(); 
+};
+
+// Cầu nối C-C++
+extern "C" {
+    void LightControl_Init_Wrapper(void);
+    void LightControl_Task_Wrapper(void *argument);
+}
+
+#endif // LIGHT_CONTROL_HPP

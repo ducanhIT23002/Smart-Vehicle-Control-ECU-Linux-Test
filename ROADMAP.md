@@ -107,48 +107,85 @@
 
 ---
 
-## 🚀 PHASE 4: CONNECTIVITY, DIAGNOSTICS & DEVOPS
-*Nhiệm vụ: Thêm khả năng kết nối, ghi lỗi, tự động hóa build/test để project giống quy trình doanh nghiệp hơn.*
+🚀 PHASE 4: ADVANCED CONNECTIVITY & DIAGNOSTICS (Đang thực hiện)
+Nhiệm vụ: Cô lập lỗi hệ thống, kiểm thử ép tải và đưa ECU kết nối ra thế giới bên ngoài (Connected Car).
 
-- [ ] **Day 20: Socket Programming**
-  - Tạo chương trình client-server để điều khiển BCM từ PC.
-  - Dùng TCP/IP để mô phỏng kết nối giữa:
-    - test tool
-    - virtual ECU
-    - logger tool
-  - Đây là cách thay cho Cloud/V2X, thực tế hơn với BCM.
+[x] Day 20: Fault Injection & Stress Testing (Đã hoàn thành)
 
-- [ ] **Day 21: Diagnostics & Fault Injection**
-  - Tạo các lỗi giả lập:
-    - mất frame
-    - sai dữ liệu
-    - timeout
-    - sensor failure
-  - BCM phải phát hiện, ghi log, và phản ứng phù hợp.
-  - Đây là phần rất quan trọng cho tư duy automotive.
+Bơm dữ liệu rác (Noise) và ép tải nặng (Spam 10,000 lệnh) qua Pipe.
 
-- [ ] **Day 22: Logging & Trace**
-  - Viết log có timestamp, module name, event type, state before/after.
-  - Lưu log ra file để phân tích sau.
-  - Tạo trace rõ ràng cho từng scenario.
+Cấu trúc C++ nhận diện tràn Queue và xuất log cảnh báo (DTC - Diagnostic Trouble Code).
 
-- [ ] **Day 23: Bash Script & CI**
-  - Viết script tự động:
-    - build
-    - run test
-    - xuất log
-    - tổng hợp kết quả
-  - Đưa lên GitHub Actions nếu muốn có CI cơ bản.
+[ ] Day 21: TCP/IP Socket Programming (V2X Simulation)
 
-- [ ] **Day 24: Final Portfolio & Documentation**
-  - Viết README tiếng Anh rõ ràng.
-  - Thêm:
-    - kiến trúc hệ thống
-    - state diagram
-    - sequence diagram
-    - danh sách test case
-    - cách chạy project trên Linux
-  - Chuẩn bị repo để đưa vào CV và phỏng vấn.
+Tháo bỏ Pipe stdin/stdout, thay bằng giao tiếp mạng TCP/IP Sockets trên Linux.
+
+BCM C++ đóng vai trò là Server lắng nghe trên một Port. Python đóng vai trò là Client kết nối từ xa.
+
+Mô phỏng kiến trúc xe hơi kết nối mạng (通信 - つうしん - Giao tiếp/Truyền thông).
+
+[ ] Day 22: Centralized Logging System
+
+Ghi log (記録します - きろくします - Ghi lại) với định dạng chuẩn: [Timestamp] [Module] [Event] [Payload].
+
+Lưu log ra file .log xoay vòng (Log Rotation) để tránh đầy ổ cứng bộ nhớ ảo.
+
+🛡️ PHASE 5: UDS DIAGNOSTICS & NON-VOLATILE MEMORY (Chuẩn Công nghiệp)
+Nhiệm vụ: Áp dụng chuẩn chẩn đoán quốc tế ISO 14229 (UDS) và lưu trữ dữ liệu vĩnh viễn (NvM).
+
+[ ] Day 23: NvM (Non-Volatile Memory) Mocking
+
+Giả lập EEPROM bằng cách đọc/ghi file .dat hoặc .json trên Linux.
+
+Lưu lại trạng thái xe (Cửa đang mở/đóng, Số lần gạt mưa) để khi BCM sập nguồn (Crash) và khởi động lại, nó vẫn nhớ trạng thái cũ.
+
+[ ] Day 24: UDS (Unified Diagnostic Services) Protocol
+
+Triển khai chuẩn ISO 14229 cơ bản.
+
+Lập trình Python gửi các Service ID chuẩn: 0x19 (Read DTC - Đọc lỗi), 0x14 (Clear DTC - Xóa lỗi), 0x2E (Write Data - Ghi dữ liệu cấu hình).
+
+BCM phân tích gói tin UDS và phản hồi (応答します - おうとうします - Phản hồi) đúng chuẩn.
+
+🔒 PHASE 6: CYBERSECURITY & FUNCTIONAL SAFETY
+Nhiệm vụ: Chống Hacker tấn công và đảm bảo an toàn tính mạng người dùng (ISO 21434 & ISO 26262).
+
+[ ] Day 25: DoS Protection (Token Bucket Algorithm)
+
+Viết thuật toán giới hạn tốc độ (Rate Limiting) ngay tại cổng CAN Dispatcher.
+
+Ngăn chặn hệ thống bị nghẽn cổ chai khi Hacker cố tình Spam mạng CAN.
+
+[ ] Day 26: SecOC (Secure Onboard Communication)
+
+Thêm mã xác thực (MAC - Message Authentication Code) vào cuối gói tin CAN/TCP.
+
+BCM chỉ xử lý lệnh từ Python nếu chữ ký điện tử hợp lệ (Xác thực - 認証します - にんしょうします).
+
+[ ] Day 27: Phục hồi sau thảm họa (Error Recovery)
+
+Tối ưu Watchdog Manager: Khi phát hiện 1 Task bị treo (Deadlock), không chỉ reset cả hệ thống mà phải đưa các cơ cấu chấp hành (Actuators) về "Safe State" (Ví dụ: Treo đèn thì mặc định phải bật sáng, không được tắt tối thui).
+
+🏭 PHASE 7: ENTERPRISE CI/CD & MISRA COMPLIANCE
+Nhiệm vụ: Đóng gói dự án theo chuẩn khắt khe của hệ thống phần mềm nhúng doanh nghiệp.
+
+[ ] Day 28: MISRA C++ & Static Code Analysis
+
+Chạy các công cụ phân tích tĩnh (Static Analyzer) như Cppcheck.
+
+Loại bỏ hoàn toàn các rủi ro tràn bộ đệm, ép kiểu sai, đảm bảo không có cảnh báo nào khi biên dịch với cờ -Wall -Wextra -Werror.
+
+[ ] Day 29: Automated Testing Framework
+
+Nâng cấp auto_test.py thành một Unit/Integration Test Framework chuyên nghiệp bằng pytest.
+
+Sinh báo cáo kiểm thử định dạng HTML (Test Report) rõ ràng.
+
+[ ] Day 30: CI/CD Pipeline & Final Portfolio
+
+Tích hợp GitHub Actions: Cứ mỗi lần push code, server GitHub sẽ tự động make build, tự chạy pytest, tự động báo PASS/FAIL.
+
+Hoàn thiện tài liệu kiến trúc (State Machine, Sequence Diagram) lên README.
 
 
 

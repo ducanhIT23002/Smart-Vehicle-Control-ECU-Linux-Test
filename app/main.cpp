@@ -5,21 +5,20 @@
 #include "EcuM.h"
 #include "Rte_Types.h"
 #include <stdio.h>
-// Khai báo các Module
+
+// ----------------------------------------------------------------------------
+// KHAI BÁO MODULE
+// (Các file .hpp này đã tự động chứa sẵn các hàm _Wrapper bên trong)
+// ----------------------------------------------------------------------------
 #include "DoorControl.hpp"
 #include "WiperControl.hpp"
 #include "LightControl.hpp"
 #include "CanDispatcher.hpp"
 #include "InputMonitor.hpp"
-
-// Báo cho hệ thống biết về các Task
-extern void DoorControl_Task(void *argument);
-extern void WiperControl_Task(void *argument);
-extern void LightControl_Task(void *argument);
-extern void CanDispatcher_Task(void *argument);
-extern void InputMonitor_Task(void *argument);
-
-// Khởi tạo các Biến toàn cục (グローバル変数)
+#include "NvM.hpp"
+// ----------------------------------------------------------------------------
+// BIẾN TOÀN CỤC (Global Variables)
+// ----------------------------------------------------------------------------
 osMessageQueueId_t doorQueue;
 osMessageQueueId_t wiperQueue;
 osMessageQueueId_t lightQueue;
@@ -28,12 +27,12 @@ osMutexId_t uartMutex;
 osThreadId_t doorTask_id, wiperTask_id, lightTask_id, dispatcherTask_id, inputTask_id;
 osThreadId_t wdgTask_id;
 
+// ============================================================================
+// HÀM MAIN CHÍNH
+// ============================================================================
 int main(void) {
 
-    // Vô hiệu hóa (無効にします - むこうにします)
-    // 例文: バッファリングを無効(むこう)にします。
-    // (Vô hiệu hóa bộ đệm.)
-    // Ép stdout không giữ lại bộ đệm (No Buffer), có chữ nào đẩy thẳng ra ống Pipe ngay lập tức
+    // Ép stdout không giữ lại bộ đệm (No Buffer) để đẩy ra Pipe ngay lập tức cho Python đọc
     setvbuf(stdout, NULL, _IONBF, 0);
 
     // 1. Giả lập khởi tạo phần cứng
@@ -43,12 +42,14 @@ int main(void) {
     EcuM_Init();
     CanIf_Init();
     WdgM_Init();
-
-    // 2. Khởi tạo các Ứng dụng
-    DoorControl_Init();
-    WiperControl_Init();
-    LightControl_Init();
-    InputMonitor_Init();
+    myNvM.Init();
+    
+    // 2. Khởi tạo các Ứng dụng (Gọi qua vỏ bọc C++ Wrapper)
+    DoorControl_Init_Wrapper();
+    WiperControl_Init_Wrapper();
+    LightControl_Init_Wrapper();
+    CanDispatcher_Init_Wrapper(); 
+    InputMonitor_Init_Wrapper();
 
     // 3. Khởi tạo Hệ điều hành đa nhiệm
     osKernelInitialize();
@@ -59,11 +60,11 @@ int main(void) {
     lightQueue = osMessageQueueNew(5, sizeof(SystemEvent_t), NULL);
 
     // 4. Bật các Luồng (Tasks)
-    doorTask_id       = osThreadNew(DoorControl_Task, NULL, NULL);
-    wiperTask_id      = osThreadNew(WiperControl_Task, NULL, NULL);
-    lightTask_id      = osThreadNew(LightControl_Task, NULL, NULL);
-    dispatcherTask_id = osThreadNew(CanDispatcher_Task, NULL, NULL);
-    inputTask_id      = osThreadNew(InputMonitor_Task, NULL, NULL);
+    doorTask_id       = osThreadNew(DoorControl_Task_Wrapper, NULL, NULL);
+    wiperTask_id      = osThreadNew(WiperControl_Task_Wrapper, NULL, NULL);
+    lightTask_id      = osThreadNew(LightControl_Task_Wrapper, NULL, NULL);
+    dispatcherTask_id = osThreadNew(CanDispatcher_Task_Wrapper, NULL, NULL);
+    inputTask_id      = osThreadNew(InputMonitor_Task_Wrapper, NULL, NULL);
     wdgTask_id        = osThreadNew(WdgM_Task, NULL, NULL);
 
     UART0_SendString("Starting OS Kernel...\r\n");

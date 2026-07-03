@@ -5,23 +5,30 @@
 #include "uart.h"
 #include "can_if.h"
 #include "wdg_manager.h"
+
 extern osMessageQueueId_t wiperQueue;
 
-static WiperMode_t current_wiper_mode;
-
-void WiperControl_Init(void) {
+// ============================================================================
+// CONSTRUCTOR & INIT
+// ============================================================================
+WiperControl::WiperControl() {
     current_wiper_mode = WIPER_OFF;
+}
+
+void WiperControl::Init() {
     Rte_Write_WiperMode(current_wiper_mode);
 }
 
-__NO_RETURN void WiperControl_Task(void *argument) {
-    (void)argument;
+// ============================================================================
+// TASK CHÍNH
+// ============================================================================
+void WiperControl::RunTask() {
     UART0_SendString("[Task Wiper] Ready & Waiting...\r\n");
 
     while(1) {
         WdgM_CheckpointReached(WDG_WIPER_TASK_ID);
         SystemEvent_t received_msg;
-        if (osMessageQueueGet(wiperQueue, &received_msg, NULL, 500) == osOK) {
+        if (osMessageQueueGet(wiperQueue, &received_msg, NULL, 0) == osOK) {
             CanMessage_t tx_msg;
             tx_msg.dlc = 1;
             tx_msg.id = 0x201;
@@ -45,5 +52,20 @@ __NO_RETURN void WiperControl_Task(void *argument) {
                 }
             }
         }
+        osDelay(50);
     }
+}
+
+// ============================================================================
+// CẦU NỐI RTOS
+// ============================================================================
+WiperControl myWiper;
+
+extern "C" void WiperControl_Init_Wrapper(void) {
+    myWiper.Init();
+}
+
+extern "C" void WiperControl_Task_Wrapper(void *argument) {
+    (void)argument;
+    myWiper.RunTask(); 
 }

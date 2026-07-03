@@ -1,5 +1,4 @@
 #include "InputMonitor.hpp"
-#include "Rte_Types.h"
 #include "Rte_Door.h"
 #include "Rte_Wiper.h"
 #include "Rte_Light.h"
@@ -8,22 +7,22 @@
 #include "wdg_manager.h" 
 #include "uart.h"
 #include "gpio.h" 
-
 #include "can_if.h"
 
+// Khởi tạo các giá trị cho cảm biến ngay khi Object vừa sinh ra
+InputMonitor::InputMonitor() {
+    last_door = 1;      
+    last_wiper_sw = 1;  
+    last_dimmer_sw = 1; 
+    last_env = ENV_BRIGHT; 
+    last_joystick = 1; 
+}
 
-void InputMonitor_Init(void) {
+void InputMonitor::Init() {
     GPIO_SetDir(1, 25, 0);
 }
 
-__NO_RETURN void InputMonitor_Task(void *argument) {
-    (void)argument;
-    static uint8_t last_door = 1;      
-    static uint8_t last_wiper_sw = 1;  
-    static uint8_t last_dimmer_sw = 1; 
-    static EnvLightState_t last_env = ENV_BRIGHT; 
-    static uint8_t last_joystick = 1;  
-
+void InputMonitor::RunTask() {
     while(1) {
         WdgM_CheckpointReached(WDG_INPUT_TASK_ID);
         SystemEvent_t event_msg;
@@ -36,7 +35,6 @@ __NO_RETURN void InputMonitor_Task(void *argument) {
             SystemEvent_t poison_msg = SYS_EVT_CRASH;
             uint32_t random_target = osKernelGetTickCount() % 3;
             
-         
             tx_msg.data[0] = poison_msg;
             if (random_target == 0) {
                 UART0_SendString("[Input Monitor] Joystick: Crashing DOOR (via CAN)!\r\n");
@@ -68,7 +66,6 @@ __NO_RETURN void InputMonitor_Task(void *argument) {
         uint8_t current_wiper_sw = Rte_Read_WiperSwitch();
         if (current_wiper_sw == 0 && last_wiper_sw == 1) { 
             event_msg = SYS_EVT_WIPER_BTN_PRESSED;
-
             tx_msg.id = 0x200;
             tx_msg.data[0] = event_msg;
             CanIf_Transmit(&tx_msg);
@@ -93,8 +90,20 @@ __NO_RETURN void InputMonitor_Task(void *argument) {
             last_env = current_env;
         }
 
-        // RECEIVE FEEDBACK 0x101,0x201,0x301 (optional)
-
         osDelay(50);
     }
+}
+
+// ============================================================================
+// CẦU NỐI RTOS
+// ============================================================================
+InputMonitor myInput;
+
+extern "C" void InputMonitor_Init_Wrapper(void) {
+    myInput.Init();
+}
+
+extern "C" void InputMonitor_Task_Wrapper(void *argument) {
+    (void)argument;
+    myInput.RunTask();
 }

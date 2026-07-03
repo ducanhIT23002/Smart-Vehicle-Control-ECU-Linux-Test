@@ -1,8 +1,25 @@
-#ifndef DOORCONTROL_SWC_H
-#define DOORCONTROL_SWC_H
+#ifndef DOOR_CONTROL_HPP
+#define DOOR_CONTROL_HPP
 
-void DoorControl_Init(void);
+#include <stdint.h>
 
-void DoorControl_Runnable(void);
+// Lớp (クラス - くらす)
+// 例文: ドア制御(せいぎょ)のクラスを定義(ていぎ)します。
+// (Định nghĩa lớp điều khiển cửa.)
+class DoorControl {
+private:
+    uint8_t currentDoorState;
 
-#endif /* DOORCONTROL_SWC_H */
+public:
+    DoorControl();
+    void Init();
+    void RunTask(); 
+};
+
+// Cầu nối C-C++ cho Hệ điều hành và hàm main
+extern "C" {
+    void DoorControl_Init_Wrapper(void);
+    void DoorControl_Task_Wrapper(void *argument);
+}
+
+#endif // DOOR_CONTROL_HPP

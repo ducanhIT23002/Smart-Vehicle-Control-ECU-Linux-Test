@@ -5,7 +5,7 @@ CC = gcc
 CXX = g++
 
 # Cờ cấu hình dùng chung cho cả C và C++
-CFLAGS = -Wall -pthread -I./app -I./services -I./hal/mock -I./simulator
+CFLAGS = -Wall -pthread -I./app -I./services -I./hal/mock -I./simulator 
 CXXFLAGS = $(CFLAGS)
 
 # ============================================================================

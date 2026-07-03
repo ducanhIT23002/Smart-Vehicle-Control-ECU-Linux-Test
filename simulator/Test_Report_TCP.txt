@@ -1,0 +1,10 @@
+=================================================
+   SMART BCM - TCP/IP AUTOMATED TEST REPORT
+=================================================
+
+[TC01] Normal Op - Mở cửa thành công (TCP): ✅ PASS
+[TC02] Diagnostics - Lọc CAN ID lạ (TCP): ✅ PASS
+[TC03] Robustness - Báo lỗi tràn Queue (TCP): ✅ PASS
+
+=================================================
+=> KẾT LUẬN: Mạng TCP/IP hoạt động ổn định. BCM Core an toàn.

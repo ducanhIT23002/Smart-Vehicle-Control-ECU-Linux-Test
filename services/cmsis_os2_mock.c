@@ -153,11 +153,21 @@ osStatus_t osMessageQueueGet(osMessageQueueId_t mq_id, void *msg_ptr, uint8_t *m
     MockQueue_t *q = (MockQueue_t *)mq_id;
     pthread_mutex_lock(&q->lock);
 
-    // Chờ đợi (待機 - たいき - chờ đợi) cho đến khi có dữ liệu mới
-    while (q->count == 0) {
-        pthread_cond_wait(&q->not_empty, &q->lock);
+    // XỬ LÝ KHI HÀNG ĐỢI TRỐNG
+    if (q->count == 0) {
+        if (timeout == 0) {
+            // Tối ưu hóa Polling: Nhả khóa và trả về lỗi NGAY LẬP TỨC, tuyệt đối không được Block!
+            pthread_mutex_unlock(&q->lock);
+            return osErrorResource; 
+        } else {
+            // Nếu có timeout, đành phải chặn luồng chờ đến khi có tín hiệu not_empty
+            while (q->count == 0) {
+                pthread_cond_wait(&q->not_empty, &q->lock);
+            }
+        }
     }
 
+    // Nếu có data thì bốc ra như bình thường
     uint32_t offset = q->head * q->msg_size;
     memcpy(msg_ptr, (char*)q->data + offset, q->msg_size);
     

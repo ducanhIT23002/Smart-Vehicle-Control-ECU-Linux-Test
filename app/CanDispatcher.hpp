@@ -1,7 +1,19 @@
-#ifndef CANDISPATCHER_SWC_H
-#define CANDISPATCHER_SWC_H
+#ifndef CAN_DISPATCHER_HPP
+#define CAN_DISPATCHER_HPP
 
-void CanDispatcher_Init(void);
-void CanDispatcher_Task(void *argument);
+#include <stdint.h>
 
-#endif /* CANDISPATCHER_SWC_H */
+class CanDispatcher {
+public:
+    CanDispatcher();
+    void Init();
+    void RunTask();
+};
+
+// Cầu nối C-C++
+extern "C" {
+    void CanDispatcher_Init_Wrapper(void);
+    void CanDispatcher_Task_Wrapper(void *argument);
+}
+
+#endif // CAN_DISPATCHER_HPP

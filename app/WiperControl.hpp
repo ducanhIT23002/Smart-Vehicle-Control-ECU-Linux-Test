@@ -1,7 +1,24 @@
-#ifndef WIPERCONTROL_SWC_H
-#define WIPERCONTROL_SWC_H
+#ifndef WIPER_CONTROL_HPP
+#define WIPER_CONTROL_HPP
 
-void WiperControl_Init(void);
-void WiperControl_Runnable(void);
+#include <stdint.h>
+#include "Rte_Wiper.h" 
 
-#endif /* WIPERCONTROL_SWC_H */
+class WiperControl {
+private:
+    // Biến trạng thái đã được đưa vào làm tài sản riêng của Class
+    WiperMode_t current_wiper_mode;
+
+public:
+    WiperControl();
+    void Init();
+    void RunTask(); 
+};
+
+// Cầu nối C-C++
+extern "C" {
+    void WiperControl_Init_Wrapper(void);
+    void WiperControl_Task_Wrapper(void *argument);
+}
+
+#endif // WIPER_CONTROL_HPP

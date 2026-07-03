@@ -1,73 +1,126 @@
 #include "can_if.h"
+#include "uart.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+// 3 Thư viện chuyên dụng cho Socket Mạng trên Linux
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+//<sys/socket.h>: Chứa các hàm core socket(), bind(), listen(), accept(), recv().
+//<netinet/in.h> & <arpa/inet.h>: Chứa các struct sockaddr_in và các macro ép kiểu IP/Port.
+
+
+
+
+#define PORT 8080 // Cổng giao tiếp mạng (Mở Port 8080)
+
+// Biến lưu trữ ID của Hộp thư
+static int server_fd = -1;
+static int client_socket = -1;
 
 // ============================================================================
-// HÀM 1: KHỞI TẠO GIAO DIỆN CAN
+// KHỞI TẠO PHẦN CỨNG CAN (Bây giờ là Mở Server Mạng)
 // ============================================================================
 void CanIf_Init(void) {
-    // Khởi tạo (初期化します - しょきかします)
-    // 例文: CANインターフェースを初期化(しょきか)します。 
-    // (Khởi tạo giao diện CAN.)
-    printf("[CAN MOCK] CAN Interface Initialized.\n");
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+
+    // 1. Tạo Socket (ソケットを作成します - そけっとをさくせいします)
+    //SOCK_STREAM " TCP | SOCK_DGRAM " UDP | AF_INET : ipv4
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        UART0_SendString("🔥 [CAN MOCK] Socket creation failed!\r\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Cấu hình chống kẹt Port (Address Reuse)
+    //(再利用します - さいりようします - Tái sử dụng)
+    setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt));
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY; // Chấp nhận kết nối từ mọi IP
+    address.sin_port = htons(PORT); //đổi Port số nguyên bình thường sang hệ Big-Endian (chuẩn bắt buộc của mạng lưới).
+
+    // 2. Khóa Port (バインドします - ばいんどします)
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        UART0_SendString("🔥 [CAN MOCK] Bind failed! Port 8080 may be in use.\r\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // 3. Lắng nghe (待機します - たいきします)
+    if (listen(server_fd, 3) < 0) {
+        UART0_SendString("🔥 [CAN MOCK] Listen failed!\r\n");
+        exit(EXIT_FAILURE);
+    }
+
+    UART0_SendString("🌐 [CAN MOCK] Server Listening on PORT 8080...\r\n");
+    UART0_SendString("⏳ [CAN MOCK] Waiting for Python Client to Connect...\r\n");
+
+    // 4. Chấp nhận kết nối (接続を受け入れます - せつぞくをうけいれます)
+    // LƯU Ý: Hàm này sẽ BLOCK (chặn) toàn bộ hệ thống lại cho đến khi Python kết nối!
+    client_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    if (client_socket < 0) {
+        UART0_SendString("🔥 [CAN MOCK] Accept failed!\r\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // KỸ THUẬT LÕI: Chuyển socket sang chế độ Non-blocking (Không chặn)
+    // Để Dispatcher có thể chạy với tốc độ ánh sáng mà không bị kẹt khi chờ dữ liệu
+    int flags = fcntl(client_socket, F_GETFL, 0);
+    fcntl(client_socket, F_SETFL, flags | O_NONBLOCK);
+
+    UART0_SendString("✅ [CAN MOCK] Python Client Connected! TCP/IP Socket Ready.\r\n");
 }
 
-// ============================================================================
-// HÀM 2: TRUYỀN DỮ LIỆU TỪ HỆ THỐNG RA NGOÀI
-// Logic: Thay vì truyền điện áp, ta dùng printf in ra Terminal để Python đọc.
-// ============================================================================
-uint8_t CanIf_Transmit(const CanMessage_t *msg) {
-    // Truyền / Gửi (送信します - そうしんします)
-    // 例文: 画面(がめん)にCANデータを送信(そうしん)します。 
-    // (Truyền dữ liệu CAN ra màn hình.)
-    printf("[CAN MOCK] TX -> ID: 0x%X, DLC: %d, Data[0]: 0x%X\n", msg->id, msg->dlc, msg->data[0]);
-    
-    // Trả về (返します - かえします)
-    // 例文: 成功(せいこう)のステータスを返(かえ)します。 
-    // (Trả về trạng thái thành công.)
-    return 1; 
-}
 
 // ============================================================================
-// HÀM 3: NHẬN DỮ LIỆU TỪ NGOÀI (PYTHON) VÀO HỆ THỐNG
-// Logic: Hàm fgets() sẽ chặn (block) luồng cho đến khi Python đẩy lệnh vào.
+// NHẬN DỮ LIỆU (Đọc từ Mạng TCP/IP thay vì Bàn phím)
 // ============================================================================
+// Sửa int thành uint8_t
 uint8_t CanIf_Receive(CanMessage_t *msg) {
-    char buffer[64];
-    
-    // Đọc (読み込みます - よみこみます)
-    // 例文: パイプから文字列(もじれつ)を読(よ)み込(こ)みます。 
-    // (Đọc chuỗi string từ đường ống pipe.)
-    if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-        
-        uint32_t id = 0;
-        int dlc = 0;
-        int data0 = 0;
-        
-        // Phân tích (分析します - ぶんせきします)
-        // 例文: 受信(じゅしん)した文字列(もじれつ)を分析(ぶんせき)します。 
-        // (Phân tích chuỗi string đã nhận.)
-        // Hàm sscanf bóc tách chuỗi định dạng "CAN %x %d %d" thành các số.
-        if (sscanf(buffer, "CAN %x %d %d", &id, &dlc, &data0) == 3) {
-            
-            // Gán (代入します - だいにゅうします)
-            // 例文: 構造体(こうぞうたい)に値(あたい)を代入(だいにゅう)します。 
-            // (Gán giá trị vào struct.)
-            msg->id = id;
-            msg->dlc = dlc;
-            msg->data[0] = (uint8_t)data0;
-            
-            // Nhận (受信します - じゅしんします)
-            // 例文: Pythonからメッセージを受信(じゅしん)します。 
-            // (Nhận bản tin từ Python.)
-            printf("[CAN MOCK] RX -> ID: 0x%X, DLC: %d, Data: %d\n", msg->id, msg->dlc, msg->data[0]);
-            
-            return 1; // Báo hiệu đã có dữ liệu hợp lệ
+    if (client_socket < 0) return 0;
+
+    static char line_buffer[256];
+    static int buf_idx = 0;
+    char c;
+
+    // Đọc từng byte một từ Mạng (受信します - じゅしんします)
+    while (recv(client_socket, &c, 1, MSG_DONTWAIT) > 0) {
+        if (c == '\n') {
+            line_buffer[buf_idx] = '\0';
+            buf_idx = 0; // Reset bộ đệm cho dòng sau
+
+            // Bóc tách dữ liệu y hệt cũ
+            unsigned int id;
+            unsigned char dlc, data0;
+            if (sscanf(line_buffer, "CAN %x %hhu %hhu", &id, &dlc, &data0) == 3) {
+                msg->id = id;
+                msg->dlc = dlc;
+                msg->data[0] = data0;
+                return 1; // Có dữ liệu chuẩn
+            } else {
+                // Tiêm lỗi: Ném ID rác để hệ thống báo DTC
+                msg->id = 0x999; 
+                msg->dlc = 0;
+                return 1; 
+            }
+        } else if (c != '\r' && buf_idx < 255) {
+            line_buffer[buf_idx++] = c;
         }
     }
-    
-    // Bỏ qua (無視します - むしします)
-    // 例文: 無効(むこう)なデータを無視(むし)します。 
-    // (Bỏ qua dữ liệu không hợp lệ.)
-    return 0; 
+    return 0; // Đường truyền đang trống
+}
+
+// ============================================================================
+// GỬI PHẢN HỒI (Vẫn in ra Màn hình để Python thu thập Log)
+// ============================================================================
+// Sửa void thành uint8_t, và thêm từ khóa const
+uint8_t CanIf_Transmit(const CanMessage_t *msg) {
+    char buffer[100];
+    sprintf(buffer, "[CAN MOCK] TX -> ID: 0x%X, DLC: %d, Data[0]: 0x%X\r\n", msg->id, msg->dlc, msg->data[0]);
+    UART0_SendString(buffer); // Truyền thông (通信します - つうしんします)
+    return 1; // Báo gửi thành công
 }

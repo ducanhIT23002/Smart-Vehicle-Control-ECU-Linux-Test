@@ -5,23 +5,24 @@
 #include "uart.h"
 #include "can_if.h"
 #include "wdg_manager.h"
+
 extern osMessageQueueId_t lightQueue;
 
-static uint8_t is_interior_light_on = 0;
-
-void LightControl_Init(void) {
+LightControl::LightControl() {
     is_interior_light_on = 0;
+}
+
+void LightControl::Init() {
     Rte_Write_Headlight(LED_OFF);
 }
 
-__NO_RETURN void LightControl_Task(void *argument) {
-    (void)argument;
+void LightControl::RunTask() {
     UART0_SendString("[Task Light] Ready & Waiting for Events...\r\n");
 
     while(1) {
         WdgM_CheckpointReached(WDG_LIGHT_TASK_ID);
         SystemEvent_t received_msg;
-        osStatus_t status = osMessageQueueGet(lightQueue, &received_msg, NULL, 500);
+        osStatus_t status = osMessageQueueGet(lightQueue, &received_msg, NULL, 0);
 
         if (status == osOK) {
             CanMessage_t tx_msg;
@@ -31,7 +32,7 @@ __NO_RETURN void LightControl_Task(void *argument) {
             switch (received_msg) {
                 case SYS_EVT_CRASH:
                     UART0_SendString("[Task Light] CRASH RECEIVED\r\n");
-                    while(1) {}
+                    while(1) { osDelay(1000); }
                     break;
                 case SYS_EVT_ENV_DARK:
                     Rte_Write_Headlight(LED_ON);
@@ -64,5 +65,17 @@ __NO_RETURN void LightControl_Task(void *argument) {
                     break;
             }
         }
+        osDelay(50);
     }
+}
+
+LightControl myLight;
+
+extern "C" void LightControl_Init_Wrapper(void) {
+    myLight.Init();
+}
+
+extern "C" void LightControl_Task_Wrapper(void *argument) {
+    (void)argument;
+    myLight.RunTask(); 
 }
