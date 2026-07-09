@@ -190,58 +190,33 @@ Hoàn thiện tài liệu kiến trúc (State Machine, Sequence Diagram) lên RE
 
 
 
+# 🗺️ ROADMAP: SMART BCM FULL-STACK AUTOMOTIVE
+*(Aligned with Bosch IVI & Base Software Requirements)*
 
+## ✅ PHASE 1-7: CORE MIDDLEWARE (Software-in-the-Loop) - [COMPLETED]
+- **Kiến trúc (Architecture):** Chuyển đổi C sang C++ (OOP), phân lớp chuẩn AUTOSAR (App, RTE, Services, HAL).
+- **Hệ điều hành (OS):** Giả lập RTOS bằng POSIX Threads (Linux/Ubuntu), Quản lý Mutex, Queue.
+- **Mạng (Network):** Giả lập CAN Bus qua giao thức TCP/IP Socket (C++ Server, Python Client).
+- **Chẩn đoán (Diagnostics):** Tích hợp chuẩn UDS (ISO 14229) đọc/xóa lỗi (DTC), lưu trữ EEPROM (NvM).
+- **An toàn (Safety - ISO 26262):** Watchdog Timer đếm ngược, kích hoạt Fail-Safe (Bật đèn khẩn cấp) khi Deadlock.
+- **Bảo mật (Cybersecurity):** Thuật toán Token Bucket chống tấn công DoS/Spam tràn RAM.
+- **Kiểm thử (Testing):** Kịch bản CI/CD Python tự động hóa kiểm thử (Auto-Test).
 
+## 🚀 PHASE 8: HMI & CAR MULTIMEDIA (Web-based Dashboard) - [NEXT]
+*Targeting JD: Knowledge of Web (React/Python) / Linux-based system.*
+- Xóa bỏ giao diện Terminal đen ngòm của Python.
+- Xây dựng **Middleware Gateway (FastAPI/Python)** giao tiếp WebSocket với Front-end.
+- Xây dựng **React.js HMI**: Giao diện màn hình xe ô tô trực quan (Có vô lăng, nút bấm, đèn báo).
+- **Data Flow:** Click Web (React) -> WebSocket (Python) -> TCP/IP Socket -> C++ BCM (Linux).
 
+## 🔌 PHASE 9: HARDWARE-IN-THE-LOOP (HiL) - [FUTURE]
+*Targeting JD: MCU (STM32/LPC), SPI/I2C/UART, Bootloader, RTOS.*
+- Bóc tách Module `InputMonitor` và `LightControl` đưa xuống vi điều khiển LPC1768/STM32 thật.
+- Cấu hình FreeRTOS trên vi điều khiển.
+- Viết Driver giao tiếp **SPI hoặc UART** để vi điều khiển nói chuyện với "Bộ não" Linux C++ thay vì dùng Mock.
+- Viết Driver I2C để lưu lỗi UDS vào chip EEPROM vật lý thay vì file `.dat`.
 
-
-
-
-
-
-
-
-
-
-
-
-## 🐍 PHASE 2: SOFTWARE-IN-THE-LOOP (SiL) & PYTHON TOOLING
-*Nhiệm vụ: Sử dụng Python để tự động hóa và xây dựng môi trường giả lập (đáp ứng yêu cầu Tooling & Scripting của Bosch).*
-
-- [ ] **Day 10: Python UART/CAN Logger & Automation**
-    - Viết script Python đọc luồng dữ liệu (log) từ cổng ảo hoặc file text.
-    - Parse dữ liệu CAN Frame (ID, Payload) và hiển thị trạng thái xe (Cửa/Đèn) trực quan.
-- [ ] **Day 11: Linux Ecosystem & GCC Toolchain**
-    - Thiết lập môi trường Ubuntu (WSL/VirtualBox).
-    - Thành thạo các lệnh Linux Terminal cơ bản và cài đặt `arm-none-eabi-gcc`.
-- [ ] **Day 12: Build Automation (Makefile)**
-    - Tự viết `Makefile` quản lý project. Hiểu sâu quy trình Compilation, Linking để tối ưu hóa bộ nhớ.
-
----
-
-## 🐧 PHASE 3: VIRTUAL ECU & MODERN C++ (Adaptive AUTOSAR Prep)
-*Nhiệm vụ: Đưa logic BCM lên chạy đa luồng trên Linux và áp dụng tư duy hướng đối tượng (OOP).*
-
-- [ ] **Day 13: C++ OOP Wrapper cho SWCs**
-    - Đóng gói các logic C thuần (Light/Door/Wiper) thành các **Class**.
-    - Sử dụng tính chất Đóng gói (Encapsulation) để quản lý tài nguyên hệ thống chuyên nghiệp hơn.
-- [ ] **Day 14: POSIX Threads (pthreads) & Synchronization**
-    - Chuyển đổi từ CMSIS-RTOS2 sang `pthread` của Linux.
-    - Xây dựng Virtual ECU: Các Task chạy song song trên nhân Linux, giao tiếp qua Linux IPC.
-- [ ] **Day 15: Mocking Hardware & Unit Test**
-    - Viết các hàm "giả lập" phần cứng (Mock) để chạy test logic mà không cần chip.
-    - Làm quen với tư duy Test-Driven Development (TDD).
-
----
-
-## 🚀 PHASE 4: ADVANCED CONNECTIVITY & DEVOPS
-*Nhiệm vụ: Kết nối hệ thống và mô phỏng quy trình làm việc tại các tập đoàn lớn.*
-
-- [ ] **Day 16-17: Socket Programming (TCP/IP)**
-    - Viết ứng dụng Client-Server để điều khiển BCM từ xa qua mạng LAN (mô phỏng kết nối Cloud/V2X).
-- [ ] **Day 18-19: Bash Scripting & CI/CD Pipeline**
-    - Viết script tự động hóa toàn bộ quy trình: Build -> Test -> Report.
-    - Tìm hiểu cách thức hoạt động của Jenkins/GitHub Actions trong dự án Automotive.
-- [ ] **Day 20: Final Review & Bosch Portfolio**
-    - Tổng hợp toàn bộ source code, sơ đồ kiến trúc và kết quả test vào GitHub.
-    - Chuẩn bị tài liệu kỹ thuật (Design Document) bằng tiếng Anh chuyên ngành.
+## 🌐 PHASE 10: ADVANCED AUTOMOTIVE NETWORKING
+*Targeting JD: SOME/IP, Ethernet, D-Bus.*
+- Nâng cấp giao tiếp nội bộ Linux (IPC) bằng D-Bus.
+- Thay thế TCP thô bằng SOME/IP (Scalable service-Oriented MiddlewarE over IP) - Tiêu chuẩn cao cấp nhất của xe hơi hiện đại.

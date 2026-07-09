@@ -20,36 +20,23 @@
 💾 [NvM] Restore data from EEPROM success!
 [RTE MOCK] Wiper Mode set to: 0
 [RTE MOCK] Headlight set to: 0
+Starting OS Kernel...
 [Task Door] Ready & Waiting...
+[Task Wiper] Ready & Waiting...
 [Task Light] Ready & Waiting for Events...
 📡 [Can Dispatcher] Ready & Listening on CAN Bus...
-📡 [Dispatcher] Forwarding to DOOR Queue
-[Task Wiper] Ready & Waiting...
-Starting OS Kernel...
+📡 [CAN TX Task] Ready. Waiting for internal events to transmit...
 [RTE MOCK] Door LED Status set to: 1
 [CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
 [Task Door] DOOR OPEN -> LED ON (Feedback Sent)
-📡 [Dispatcher] Forwarding to WIPER Queue
 [RTE MOCK] Wiper Mode set to: 1
 [CAN MOCK] TX -> ID: 0x201, DLC: 1, Data[0]: 0x1
 [Task Wiper] Mode INT (Feedback Sent)
-📡 [Dispatcher] Forwarding to DOOR Queue
-📡 [Dispatcher] Forwarding to DOOR Queue
-📡 [Dispatcher] Forwarding to DOOR Queue
-📡 [Dispatcher] Forwarding to DOOR Queue
-📡 [Dispatcher] Forwarding to DOOR Queue
-🔥 [ERROR/DTC] DOOR Queue Full! Lost Frame!
 💾 [NvM] Data saved to EEPROM!
-🔥 [ERROR/DTC] DOOR Queue Full! Lost Frame!
 💾 [NvM] Data saved to EEPROM!
-🔥 [ERROR/DTC] DOOR Queue Full! Lost Frame!
 💾 [NvM] Data saved to EEPROM!
-🔥 [ERROR/DTC] DOOR Queue Full! Lost Frame!
-[RTE MOCK] Door LED Status set to: 1
-[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
-[Task Door] DOOR OPEN -> LED ON (Feedback Sent)
 💾 [NvM] Data saved to EEPROM!
-📡 [Dispatcher] Forwarding to DOOR Queue
+💾 [NvM] Data saved to EEPROM!
 🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
 🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
 🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
@@ -105,7 +92,6 @@ Starting OS Kernel...
 [RTE MOCK] Door LED Status set to: 1
 [CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
 [Task Door] DOOR OPEN -> LED ON (Feedback Sent)
-📡 [Dispatcher] Forwarding to LIGHT Queue
 [Task Light] CRASH RECEIVED
 💀 [WdgM] FATAL ERROR! Task 4 is DEAD!
 🚨 [FAIL-SAFE] KÍCH HOẠT AN TOÀN! ÉP BẬT SÁNG ĐÈN PHA NGAY LẬP TỨC!

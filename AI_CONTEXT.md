@@ -56,3 +56,19 @@ Hướng dẫn tôi cấu trúc lại các thư mục để code trở nên gọ
 Vẫn giữ nguyên phong cách Senior: Hướng dẫn trực diện, giải thích rõ luồng dữ liệu (Data Flow) giữa Python và C++ trong lúc Auto-Test. Nhớ chèn các từ vựng tiếng Nhật chuyên ngành IT (Kanji - Hiragana - Nghĩa) trong lúc giải thích nhé.
 
 Bạn đã sẵn sàng cùng tôi chốt sổ dự án đồ sộ này ở Phase 7 chưa?
+
+PHASE 7: AUTOMATION TESTING & PACKAGING
+├── app/
+│   └── LightControl.cpp    # FIX BUG: Thêm osDelay(1000) vào bẫy Deadlock để chống Trình biên dịch xóa code (Compiler Optimization).
+├── simulator/
+│   ├── auto_test.py        # CORE: Kịch bản Python tự động boot hệ điều hành C++, nã đạn qua TCP/IP, quét Log và chấm điểm.
+│   └── Test_Report.txt     # OUTPUT: File báo cáo nghiệm thu do Python tự động sinh ra.
+├── README.md               # NEW: Tài liệu đặc tả dự án chuẩn Enterprise (Viết bằng tiếng Anh).
+└── ROADMAP.md              # UPDATE: Cập nhật lộ trình phát triển Full-Stack Automotive.
+
+Chào bạn, tôi đã xem xét xong cấu trúc của Phase 7. Bây giờ chúng ta hãy đi từ từ:
+
+Đầu tiên, hãy giải phẫu chi tiết luồng code của file simulator/auto_test.py và cách chúng ta fix lỗi while(1) trong app/LightControl.cpp dưới góc nhìn của một Senior C++/Python.
+
+Sau khi tôi hiểu code Phase 7, hãy giúp tôi Review lại toàn bộ Tech Stack, Protocol và Workflow của toàn bộ dự án (Từ Phase 1 đến 7) giống như một buổi Mock Interview. Tôi cần những 'văn mẫu' sắc bén để chứng minh năng lực System Architecture khi đi phỏng vấn vị trí Embedded Automotive tại Bosch.
+Đi từng bước một nhé, bắt đầu bằng việc giải phẫu code.

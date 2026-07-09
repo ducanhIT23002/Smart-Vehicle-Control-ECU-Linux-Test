@@ -16,16 +16,18 @@
 #include "CanDispatcher.hpp"
 #include "InputMonitor.hpp"
 #include "NvM.hpp"
+#include "CanTransmitter.hpp"
 // ----------------------------------------------------------------------------
 // BIẾN TOÀN CỤC (Global Variables)
 // ----------------------------------------------------------------------------
 osMessageQueueId_t doorQueue;
 osMessageQueueId_t wiperQueue;
 osMessageQueueId_t lightQueue;
+osMessageQueueId_t canTxQueue;
 osMutexId_t uartMutex;
 
 osThreadId_t doorTask_id, wiperTask_id, lightTask_id, dispatcherTask_id, inputTask_id;
-osThreadId_t wdgTask_id;
+osThreadId_t wdgTask_id,canTxTask_id;
 
 // ============================================================================
 // HÀM MAIN CHÍNH
@@ -58,7 +60,10 @@ int main(void) {
     doorQueue  = osMessageQueueNew(5, sizeof(SystemEvent_t), NULL);
     wiperQueue = osMessageQueueNew(5, sizeof(SystemEvent_t), NULL);
     lightQueue = osMessageQueueNew(5, sizeof(SystemEvent_t), NULL);
-
+    canTxQueue = osMessageQueueNew(10, sizeof(InternalEvent_t), NULL);
+    if (canTxQueue == NULL) {
+        UART0_SendString("🔥 [ERROR] Failed to create canTxQueue!\r\n");
+    }
     // 4. Bật các Luồng (Tasks)
     doorTask_id       = osThreadNew(DoorControl_Task_Wrapper, NULL, NULL);
     wiperTask_id      = osThreadNew(WiperControl_Task_Wrapper, NULL, NULL);
@@ -66,7 +71,7 @@ int main(void) {
     dispatcherTask_id = osThreadNew(CanDispatcher_Task_Wrapper, NULL, NULL);
     inputTask_id      = osThreadNew(InputMonitor_Task_Wrapper, NULL, NULL);
     wdgTask_id        = osThreadNew(WdgM_Task, NULL, NULL);
-
+    canTxTask_id      = osThreadNew(CanTransmitter_Task_Wrapper, NULL, NULL);
     UART0_SendString("Starting OS Kernel...\r\n");
     
     // 5. Chạy vòng lặp hệ điều hành

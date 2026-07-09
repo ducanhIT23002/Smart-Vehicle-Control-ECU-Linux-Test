@@ -12,6 +12,9 @@ extern "C" {
 #define __NO_RETURN
 #endif
 
+#define osWaitForever 0xFFFFFFFFU
+
+
 // Trạng thái (ステータス - suteetasu) trả về của hệ thống
 typedef enum {
     osOK = 0,               // Thành công (成功 - seikou)

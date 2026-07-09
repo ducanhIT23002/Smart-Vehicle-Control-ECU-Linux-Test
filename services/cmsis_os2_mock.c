@@ -87,7 +87,6 @@ typedef struct {
 // (Cấp phát bộ nhớ một cách tĩnh bằng cách sử dụng mảng.)
 #define MAX_QUEUES 5        // Giới hạn tối đa 5 hàng đợi trong toàn hệ thống
 #define MAX_QUEUE_SIZE 256  // Mỗi hàng đợi tối đa 256 byte
-
 // Hồ chứa (プール - ぷーる)
 // Tạo sẵn các vùng nhớ tĩnh nằm ở phân vùng BSS của RAM
 static MockQueue_t queue_pool[MAX_QUEUES];

@@ -7,9 +7,13 @@
 #include "wdg_manager.h" 
 #include "uart.h"
 #include "gpio.h" 
-#include "can_if.h"
+#include "CanTransmitter.hpp"
+// ĐÃ XÓA #include "can_if.h" - InputMonitor không còn biết mạng CAN là gì nữa!
 
-// Khởi tạo các giá trị cho cảm biến ngay khi Object vừa sinh ra
+// Khai báo hộp thư đi (Sẽ được tạo ở file main)
+extern osMessageQueueId_t canTxQueue;
+
+
 InputMonitor::InputMonitor() {
     last_door = 1;      
     last_wiper_sw = 1;  
@@ -25,85 +29,49 @@ void InputMonitor::Init() {
 void InputMonitor::RunTask() {
     while(1) {
         WdgM_CheckpointReached(WDG_INPUT_TASK_ID);
-        SystemEvent_t event_msg;
+        InternalEvent_t out_event;
 
-        CanMessage_t tx_msg;
-        tx_msg.dlc = 1; 
-        
+        // 1. Quét Joystick (Tiêm lỗi Crash)
         uint8_t current_joystick = GPIO_ReadPin(1, 25);
         if (current_joystick == 0 && last_joystick == 1) { 
-            SystemEvent_t poison_msg = SYS_EVT_CRASH;
-            uint32_t random_target = osKernelGetTickCount() % 3;
-            
-            tx_msg.data[0] = poison_msg;
-            if (random_target == 0) {
-                UART0_SendString("[Input Monitor] Joystick: Crashing DOOR (via CAN)!\r\n");
-                tx_msg.id = 0x100; 
-                CanIf_Transmit(&tx_msg);
-            } 	
-            else if (random_target == 1) {
-                UART0_SendString("[Input Monitor] Joystick: Crashing WIPER (via CAN)!\r\n");
-                tx_msg.id = 0x200; 
-                CanIf_Transmit(&tx_msg);
-            } 
-            else if (random_target == 2) {
-                UART0_SendString("[Input Monitor] Joystick: Crashing LIGHT (via CAN)!\r\n");
-                tx_msg.id = 0x300;
-                CanIf_Transmit(&tx_msg);
-            }
+            out_event.event_id = SYS_EVT_CRASH;
+            out_event.payload = 0xFF; // Dữ liệu rác
+            osMessageQueuePut(canTxQueue, &out_event, 0, 0); // Vứt vào Queue, xong việc!
         }
         last_joystick = current_joystick;
 
+        // 2. Quét Trạng thái Cửa
         uint8_t current_door = Rte_Read_DoorStatus();
         if (current_door != last_door) {
-            event_msg = (current_door == 1) ? SYS_EVT_DOOR_OPENED : SYS_EVT_DOOR_CLOSED;
-            tx_msg.id = 0x100; 
-            tx_msg.data[0] = event_msg;
-            CanIf_Transmit(&tx_msg);
+            out_event.event_id = (current_door == 1) ? SYS_EVT_DOOR_OPENED : SYS_EVT_DOOR_CLOSED;
+            out_event.payload = 0x01;
+            osMessageQueuePut(canTxQueue, &out_event, 0, 0);
             last_door = current_door;
         }
 
+        // 3. Quét Nút Gạt mưa
         uint8_t current_wiper_sw = Rte_Read_WiperSwitch();
         if (current_wiper_sw == 0 && last_wiper_sw == 1) { 
-            event_msg = SYS_EVT_WIPER_BTN_PRESSED;
-            tx_msg.id = 0x200;
-            tx_msg.data[0] = event_msg;
-            CanIf_Transmit(&tx_msg);
+            out_event.event_id = SYS_EVT_WIPER_BTN_PRESSED;
+            out_event.payload = 0x02;
+            osMessageQueuePut(canTxQueue, &out_event, 0, 0);
         }
         last_wiper_sw = current_wiper_sw;
 
+        // 4. Quét Nút Dimmer (Đèn trong xe)
         uint8_t current_dimmer_sw = Rte_Read_DimmerSwitch();
         if (current_dimmer_sw == 0 && last_dimmer_sw == 1) { 
-            event_msg = SYS_EVT_DIMMER_BTN_PRESSED;
-            tx_msg.id = 0x300;
-            tx_msg.data[0] = event_msg;
-            CanIf_Transmit(&tx_msg);
+            out_event.event_id = SYS_EVT_DIMMER_BTN_PRESSED;
+            out_event.payload = 0x03;
+            osMessageQueuePut(canTxQueue, &out_event, 0, 0);
         }
         last_dimmer_sw = current_dimmer_sw;
-
-        EnvLightState_t current_env = Rte_Read_EnvLight();
-        if (current_env != last_env) {
-            event_msg = (current_env == ENV_DARK) ? SYS_EVT_ENV_DARK : SYS_EVT_ENV_BRIGHT;
-            tx_msg.id = 0x300;
-            tx_msg.data[0] = event_msg;
-            CanIf_Transmit(&tx_msg);
-            last_env = current_env;
-        }
 
         osDelay(50);
     }
 }
 
-// ============================================================================
 // CẦU NỐI RTOS
-// ============================================================================
 InputMonitor myInput;
-
-extern "C" void InputMonitor_Init_Wrapper(void) {
-    myInput.Init();
-}
-
-extern "C" void InputMonitor_Task_Wrapper(void *argument) {
-    (void)argument;
-    myInput.RunTask();
-}
+extern "C" void InputMonitor_Init_Wrapper(void) { myInput.Init(); }
+extern "C" void InputMonitor_Task_Wrapper(void *argument) { myInput.RunTask(); }
