@@ -1,5 +1,6 @@
 #include "CanDispatcher.hpp"
 #include "Rte_Types.h"
+#include "Rte_Sensor.h" 
 #include "cmsis_os2.h"
 #include "can_if.h"
 #include "uart.h"
@@ -44,25 +45,31 @@ void CanDispatcher::RunTask() {
 
             switch(rx_msg.id) {
                 case 0x100:
-                    // Tham số thứ 3 là Priority. Cửa được ưu tiên cao hơn (Priority 2)
                     status = osMessageQueuePut(doorQueue, &event, 2, 0); 
                     if (status != osOK) myNvM.Inc_QueueFullError();
                     break;
                     
                 case 0x200:
-                    status = osMessageQueuePut(wiperQueue, &event, 1, 0); // Priority 1
+                    status = osMessageQueuePut(wiperQueue, &event, 1, 0); 
                     if (status != osOK) myNvM.Inc_QueueFullError();
                     break;
                     
                 case 0x300:
-                    status = osMessageQueuePut(lightQueue, &event, 1, 0); // Priority 1
+                    status = osMessageQueuePut(lightQueue, &event, 1, 0); 
                     if (status != osOK) myNvM.Inc_QueueFullError();
                     break;
                     
+                // 🔴 TẦNG SIGNAL LAYER: GIẢI MÃ TỐC ĐỘ XE (ID 0x0C0)
+                case 0x0C0:
+                {
+                    uint8_t raw_speed = rx_msg.data[0]; // Nhặt byte số 0 làm tốc độ
+                    Rte_Write_VehicleSpeed(raw_speed);  // Dán lên Bảng tin RTE
+                    break; // Không đẩy vào Queue vì đây là Dữ liệu liên tục (Continuous Data)
+                }
+
                 case 0x050:
                 case 0x010:
                     UART0_SendString("🚨 [Dispatcher] High-Priority Safety Event Received!\r\n");
-                    // Tương lai sẽ đẩy vào một Queue khẩn cấp
                     break;
 
                 default:

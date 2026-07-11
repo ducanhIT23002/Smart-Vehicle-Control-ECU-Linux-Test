@@ -10,6 +10,8 @@ extern "C" {
 
 uint8_t Rte_Read_WiperSwitch(void);
 void Rte_Write_WiperMode(WiperMode_t mode);
+void Rte_Write_WiperActive_Flag(uint8_t status);
+uint8_t Rte_Read_WiperActive_Flag(void);
 
 #ifdef __cplusplus
 }

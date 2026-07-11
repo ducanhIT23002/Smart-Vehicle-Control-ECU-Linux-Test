@@ -1,11 +1,11 @@
 ==================================================
-      BÁO CÁO NGHIỆM THU - SMART BCM SiL          
+    BÁO CÁO NGHIỆM THU PRODUCT REQUIREMENTS       
 ==================================================
 
-[TC01] Đóng/Mở cửa:         ✅ PASS
-[TC02] Điều khiển Gạt mưa:  ✅ PASS
-[TC03] Cybersecurity (DoS): ✅ PASS
-[TC04] Fail-Safe (Đèn pha): ✅ PASS
+[FR-001] Khóa/Mở tự động theo tốc độ: ✅ PASS
+[FR-003 & 004] Timer 5s (Đèn & Gạt mưa):  ✅ PASS
+[FR-002] An toàn va chạm (Crash Override):✅ PASS
+[SEC-01] Phòng chống Hacker DoS:          ✅ PASS
 
 ==================================================
 --- DỮ LIỆU LOG THÔ TỪ HỆ THỐNG C++ ---
@@ -20,80 +20,85 @@
 💾 [NvM] Restore data from EEPROM success!
 [RTE MOCK] Wiper Mode set to: 0
 [RTE MOCK] Headlight set to: 0
-Starting OS Kernel...
-[Task Door] Ready & Waiting...
+📡 [Can Dispatcher] Ready & Listening on CAN Bus...
+🚪 [Task Door] Ready. Managing Door State & Security...
+🚨 [FR-001] Speed >= 20 km/h detected! AUTO-LOCKING ALL DOORS!
 [Task Wiper] Ready & Waiting...
 [Task Light] Ready & Waiting for Events...
-📡 [Can Dispatcher] Ready & Listening on CAN Bus...
+Starting OS Kernel...
 📡 [CAN TX Task] Ready. Waiting for internal events to transmit...
+🟢 [Task Door] Vehicle stopped (0 km/h). AUTO-UNLOCKING DOORS!
 [RTE MOCK] Door LED Status set to: 1
 [CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
-[Task Door] DOOR OPEN -> LED ON (Feedback Sent)
+🚪 [Task Door] DOOR OPEN -> LED ON (Feedback Sent)
+[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x0
+🚪 [FR-004] Door Closed. Interior Light fading out in 5s...
 [RTE MOCK] Wiper Mode set to: 1
 [CAN MOCK] TX -> ID: 0x201, DLC: 1, Data[0]: 0x1
 [Task Wiper] Mode INT (Feedback Sent)
-💾 [NvM] Data saved to EEPROM!
-💾 [NvM] Data saved to EEPROM!
-💾 [NvM] Data saved to EEPROM!
-💾 [NvM] Data saved to EEPROM!
-💾 [NvM] Data saved to EEPROM!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
-[RTE MOCK] Door LED Status set to: 1
-[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
-[Task Door] DOOR OPEN -> LED ON (Feedback Sent)
-[RTE MOCK] Door LED Status set to: 1
-[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
-[Task Door] DOOR OPEN -> LED ON (Feedback Sent)
-[RTE MOCK] Door LED Status set to: 1
-[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
-[Task Door] DOOR OPEN -> LED ON (Feedback Sent)
-[RTE MOCK] Door LED Status set to: 1
-[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
-[Task Door] DOOR OPEN -> LED ON (Feedback Sent)
-[RTE MOCK] Door LED Status set to: 1
-[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
-[Task Door] DOOR OPEN -> LED ON (Feedback Sent)
-[Task Light] CRASH RECEIVED
-💀 [WdgM] FATAL ERROR! Task 4 is DEAD!
-🚨 [FAIL-SAFE] KÍCH HOẠT AN TOÀN! ÉP BẬT SÁNG ĐÈN PHA NGAY LẬP TỨC!
+[RTE MOCK] Door LED Status set to: 0
+💡 [FR-004] Interior Light Faded Out Completely!
+🌧️ [FR-003] Heavy Rain Detected! Setting Flag for Lights!
 [RTE MOCK] Headlight set to: 1
-🔄 [WdgM] Resetting System...
+🚨 [FR-003] Wiper-Light Sync: Heavy Rain -> AUTO HEADLIGHT ON!
+💥 [FR-002] CRASH RECEIVED! Auto-unlocking all doors for escape!
+💾 [NvM] Data saved to EEPROM!
+💾 [NvM] Data saved to EEPROM!
+💾 [NvM] Data saved to EEPROM!
+💾 [NvM] Data saved to EEPROM!
+💾 [NvM] Data saved to EEPROM!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+🛡️ [Cybersecurity] BLOCKED! Rate limit exceeded. Dropping frame!
+[RTE MOCK] Door LED Status set to: 1
+[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
+🚪 [Task Door] DOOR OPEN -> LED ON (Feedback Sent)
+[RTE MOCK] Door LED Status set to: 1
+[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
+🚪 [Task Door] DOOR OPEN -> LED ON (Feedback Sent)
+[RTE MOCK] Door LED Status set to: 1
+[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
+🚪 [Task Door] DOOR OPEN -> LED ON (Feedback Sent)
+[RTE MOCK] Door LED Status set to: 1
+[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
+🚪 [Task Door] DOOR OPEN -> LED ON (Feedback Sent)
+[RTE MOCK] Door LED Status set to: 1
+[CAN MOCK] TX -> ID: 0x101, DLC: 1, Data[0]: 0x1
+🚪 [Task Door] DOOR OPEN -> LED ON (Feedback Sent)
