@@ -1,142 +1,90 @@
-# 🚗 Smart BCM SiL (Body Control Module - Software-in-the-Loop)
+# 🚗 Smart Vehicle Control ECU (Software-in-the-Loop)
 
-![C++](https://img.shields.io/badge/C++-11%2F14-blue.svg)
-![Python](https://img.shields.io/badge/Python-3.x-yellow.svg)
-![RTOS](https://img.shields.io/badge/RTOS-CMSIS--OS2-green.svg)
-![Status](https://img.shields.io/badge/Status-Completed-success.svg)
+![C++](https://img.shields.io/badge/C++-14-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.8+-yellow.svg)
+![Architecture](https://img.shields.io/badge/Architecture-AUTOSAR_Inspired-success.svg)
+![Testing](https://img.shields.io/badge/Testing-Automated_SiL-orange.svg)
 
-## 📖 Project Overview
-**Smart BCM SiL** is a Software-in-the-Loop simulation environment for an Automotive Body Control Module. This project modernizes traditional C-based embedded systems by migrating to an **Object-Oriented C++ architecture**, strictly following the **AUTOSAR** layered model.
+## 📖 Overview
+This project simulates an Automotive **Body Control Module (BCM)** running in a **Software-in-the-Loop (SiL)** environment. It is designed to demonstrate modern embedded software engineering principles, specifically focusing on **Layered Architecture (inspired by AUTOSAR)**, **Non-blocking RTOS Task Management**, and **Requirement-Driven Automated Testing**.
 
-Beyond basic logic control (Doors, Wipers, Lighting), this project integrates critical automotive industry standards, including **UDS Diagnostics**, **Functional Safety (ISO 26262)**, and **Cybersecurity**.
+Instead of running on a physical microcontroller, the C++ ECU runs on a Linux environment, communicating with a Python-based Test Automation Framework via TCP/IP sockets (simulating a CAN bus).
 
----
+## 🏗️ System Architecture
 
-## 🌟 Core Features
+The project strictly follows the **Separation of Concerns** principle to prevent "Spaghetti Code". The system is divided into three main layers:
 
-### 1. 🌐 Network Communication (CAN over TCP/IP)
-- Simulates a high-speed CAN Bus using a TCP/IP Socket architecture (Non-blocking I/O).
-- Capable of processing thousands of frames concurrently with sub-millisecond latency.
+1. **Application Layer (`app/`):** Contains the "Brain" of the system (`DoorControl`, `WiperControl`, `LightControl`). These modules handle pure business logic and know *nothing* about hardware.
+2. **Runtime Environment (`services/Rte_*.h`):** The "Bulletin Board" of the system. Application tasks do not call each other directly. Instead, they write to and read from the RTE. This enables loose coupling (e.g., Wiper doesn't call Light directly; Wiper sets a flag in RTE, Light reads it).
+3. **Hardware Abstraction / Mock Layer (`hal/mock/`):** The "Hands and Legs". Since this is an SiL simulation, real hardware drivers (GPIO, CAN controllers) are mocked. When the Application asks the RTE to turn on an LED, the Mock layer simply logs the action to the console.
 
-### 2. 🛠️ Diagnostics (UDS - ISO 14229)
-- Implements standard UDS communication on ports `0x7E0` / `0x7E8`.
-- Supports essential services: **Read DTC (0x19)** and **Clear DTC (0x14)**.
-- **NvM (Non-volatile Memory):** Utilizes RAM Mirroring architecture to permanently store Diagnostic Trouble Codes (DTCs) and system states via File I/O.
+## ✨ Core Product Requirements (Features)
 
-### 3. 🛡️ Cybersecurity 
-- Implements a Security Gate at the `CanDispatcher` level.
-- Utilizes the **Token Bucket (Rate Limiting)** algorithm to block DoS (Denial of Service) attacks and prevent Message Queue overflow.
+The system is designed to fulfill specific, real-world Automotive Functional Requirements (FR):
 
-### 4. 🚑 Functional Safety (ISO 26262)
-- **Watchdog Manager (WdgM):** Real-time Alive Supervision for all RTOS tasks.
-- **Fail-Safe Mechanism:** Upon detecting a task deadlock, the Watchdog bypasses the OS Kernel to directly trigger the hardware (Force Headlight ON) to secure the driver before executing a system reset.
+* **[FR-001] Speed-Dependent Auto Door Lock:** Doors automatically lock when vehicle speed exceeds 20 km/h and unlock when the vehicle stops (0 km/h) using State Machine logic.
+* **[FR-002] Crash Override (Functional Safety):** Upon receiving a critical Crash Event (CAN ID `0x050`), the system immediately overrides all tasks to unlock doors for escape and safely halt non-essential actuators.
+* **[FR-003] Wiper-Light Synchronization (Inter-Task Communication):** If the wipers run continuously for 5 seconds, the system detects "Heavy Rain" and automatically turns on the headlights via the RTE flag, without the Wiper task directly invoking the Light task.
+* **[FR-004] Interior Light Fade-Out (Non-blocking Timer):** When a door is closed, the interior light waits for a 5-second countdown before turning off. This uses a non-blocking time-slicing method, ensuring the MCU never "sleeps" and remains responsive to emergency events.
+* **[SEC-01] Anti-DoS Protection:** The `SecurityFilter` drops CAN frames if flooded excessively, preventing the ECU from being overloaded by network noise.
 
-### 5. 🤖 Automation Test Framework
-- A Python-based testing framework that interacts directly with the C++ process.
-- Automatically injects normal operations, DoS attacks, and Deadlock malware, evaluates the system's response, and generates a professional `.txt` Test Report.
+## 🧪 Automated Testing Environment (SiL)
 
----
+Testing embedded software shouldn't require manual button pressing on a physical board. This project includes a Python-based automated testing framework (`simulator/auto_test.py`).
 
-## 📂 Architecture Structure
+* **How it works:** The Python script acts as a QA Engineer. It connects to the C++ ECU via TCP/IP, injects simulated CAN frames (e.g., Speed = 25km/h, Door = Open), waits for the ECU's State Machine to process the data, and then asserts the C++ console logs to grade the system.
+* **Result:** Generates an automated `Test_Report.txt` grading every functional requirement (`PASS`/`FAIL`).
 
-```text
-Smart-BCM-SiL/
-├── AI_CONTEXT.md
-├── ROADMAP.md
-├── Makefile                  # Build script
-├── eeprom_mock.dat           # Non-volatile memory storage (File I/O)
-├── app/                      # APPLICATION LAYER (C++ Business Logic)
-│   ├── main.cpp
-│   ├── CanDispatcher.cpp/.hpp # Network router & Cybersecurity Shield
-│   ├── DoorControl.cpp/.hpp   # Door operations
-│   ├── InputMonitor.cpp/.hpp  # Sensor inputs & Event triggers
-│   ├── LightControl.cpp/.hpp  # Headlight operations (Contains Crash target)
-│   ├── WiperControl.cpp/.hpp  # Wiper operations
-│   └── NvM.cpp/.hpp           # Non-volatile Memory Manager
-├── hal/                      # HARDWARE ABSTRACTION LAYER (HAL)
-│   └── mock/
-│       ├── can_if.h/.c        # TCP/IP Socket driver
-│       ├── gpio.h             # GPIO mock
-│       └── uart.h/.c          # Terminal output logging
-├── services/                 # SERVICES LAYER (RTOS & Base Services)
-│   ├── EcuM.h                 # ECU State Manager
-│   ├── Rte_*.h / rte_mock.c   # Runtime Environment (RTE)
-│   ├── cmsis_os2.h/.c         # OS Kernel (Multi-threading & Queue)
-│   └── wdg_manager.h/.c       # Watchdog Timer & Fail-Safe triggers
-└── simulator/                # SIMULATION & TOOLING
-    ├── auto_test.py           # Automated testing script
-    ├── dashboard.py           # Python UDS Scanner & Attacker dashboard
-    └── Test_Report*.txt       # Generated evaluation reports
+## 🚀 How to Build and Run
 
+### Prerequisites
 
-# 🚀 Build & Run Instructions
+- Linux environment (Ubuntu recommended)
+- `g++` compiler and `make`
+- Python 3.x
 
-## Step 1: Compile the C++ Source Code
-
-Open a terminal, navigate to the project root directory, and build the project using the provided `Makefile`.
+### 1. Build the ECU Software
 
 ```bash
-make clean
-make
+# Clean previous builds and compile the C++ application
+make clean && make
 ```
 
-After the build completes successfully, the executable `bcm_sil_app` will be generated.
-
----
-
-## Step 2: Run the Automated Test (Recommended)
-
-This mode automatically performs the following tasks:
-
-- Boots the C++ BCM application
-- Simulates TCP/IP connections
-- Injects predefined CAN payloads
-- Evaluates Functional Safety responses
-- Generates a test report
-
-Run:
+### 2. Run the Automated Test Suite
 
 ```bash
+# Navigate to the simulator directory
 cd simulator
+
+# Execute the QA Test Script
 python3 auto_test.py
 ```
 
-### Test Report
+> **Note:** The script will automatically launch the C++ BCM in the background, send CAN commands, wait for the non-blocking timers, and generate a functional requirement test report.
 
-After execution, the test results can be found in:
+### 3. Run Manual Dashboard (Optional)
+
+If you want to manually inject CAN frames and observe the ECU behavior in real time:
+
+```bash
+# Terminal 1: Run the ECU
+./bcm_sil_app
+
+# Terminal 2: Run the interactive Python client
+cd simulator
+python3 client.py
+```
+
+---
+
+## 📂 Project Structure
 
 ```text
-simulator/Test_Report.txt
+Smart-BCM-SiL/
+├── app/                  # Application Layer (Door, Wiper, Light Logic)
+├── services/             # Runtime Environment (RTE) & OS Mock Services
+├── hal/                  # Hardware Abstraction Layer (Mock CAN, UART, GPIO)
+├── simulator/            # Python Test Scripts & Reports
+├── Makefile              # Build Configuration
+└── README.md             # Project Documentation
 ```
-
-The report contains the **PASS/FAIL** evaluation for each test scenario.
-
----
-
-## Step 3: Run Manual Simulation Mode
-
-Use this mode if you want to manually send UDS commands or test the Cybersecurity protection mechanisms.
-
-### Terminal 1 — Start the BCM Server
-
-```bash
-./bcm_sil_app
-```
-
-### Terminal 2 — Start the Python Dashboard
-
-```bash
-cd simulator
-python3 dashboard.py
-```
-
----
-
-# Available Dashboard Commands
-
-| Command | Description |
-|----------|-------------|
-| `UDS READ` | Read DTC history from EEPROM. |
-| `UDS CLEAR` | Clear all stored DTC records from EEPROM. |
-| `SPAM 500` | Inject 500 spam CAN frames to trigger the **Token Bucket** protection mechanism. |
-| `CRASH LIGHT` | Inject a Deadlock malware scenario to trigger the **Watchdog Fail-Safe** mechanism. |
