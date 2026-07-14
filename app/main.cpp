@@ -33,7 +33,8 @@ osThreadId_t wdgTask_id,canTxTask_id;
 // HÀM MAIN CHÍNH
 // ============================================================================
 int main(void) {
-
+    // int* hacker_pointer = new int[100];
+    // hacker_pointer = nullptr;
     // Ép stdout không giữ lại bộ đệm (No Buffer) để đẩy ra Pipe ngay lập tức cho Python đọc
     setvbuf(stdout, NULL, _IONBF, 0);
 
