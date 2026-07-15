@@ -1,7 +1,7 @@
 # Level 1: Định nghĩa cơ bản
 cmake_minimum_required(VERSION 3.24)
 project(Smart_BCM_SiL C CXX)
-
+set(CMAKE_BUILD_TYPE Debug)
 # Level 2: Chỉ đường cho CMake biết file Header (.h, .hpp) nằm ở đâu
 include_directories(
     app

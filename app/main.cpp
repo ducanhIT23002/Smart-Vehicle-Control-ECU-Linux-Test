@@ -35,6 +35,8 @@ osThreadId_t wdgTask_id,canTxTask_id;
 int main(void) {
     // int* hacker_pointer = new int[100];
     // hacker_pointer = nullptr;
+    // int* crash_pointer = nullptr; 
+    // *crash_pointer = 100;
     // Ép stdout không giữ lại bộ đệm (No Buffer) để đẩy ra Pipe ngay lập tức cho Python đọc
     setvbuf(stdout, NULL, _IONBF, 0);
 
